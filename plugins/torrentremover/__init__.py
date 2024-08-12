@@ -21,19 +21,19 @@ lock = threading.Lock()
 
 class TorrentRemover(_PluginBase):
     # 插件名称
-    plugin_name = "自动删种"
+    plugin_name = "自动删种(排除版)"
     # 插件描述
-    plugin_desc = "自动删除下载器中的下载任务。"
+    plugin_desc = "自动删除下载器中的下载任务。可联动H&R助手"
     # 插件图标
     plugin_icon = "delete.jpg"
     # 插件版本
-    plugin_version = "1.2.2"
+    plugin_version = "1.0.0"
     # 插件作者
-    plugin_author = "jxxghp"
+    plugin_author = "carendule"
     # 作者主页
-    author_url = "https://github.com/jxxghp"
+    author_url = "https://github.com/carendule"
     # 插件配置项ID前缀
-    plugin_config_prefix = "torrentremover_"
+    plugin_config_prefix = "torrentremoverexclude_"
     # 加载顺序
     plugin_order = 8
     # 可使用的用户级别
@@ -58,6 +58,7 @@ class TorrentRemover(_PluginBase):
     _time = None
     _upspeed = None
     _labels = None
+    _labels_ex = None
     _pathkeywords = None
     _trackerkeywords = None
     _errorkeywords = None
@@ -79,6 +80,7 @@ class TorrentRemover(_PluginBase):
             self._time = config.get("time")
             self._upspeed = config.get("upspeed")
             self._labels = config.get("labels") or ""
+            self._labels_ex = config.get("labels_ex") or ""
             self._pathkeywords = config.get("pathkeywords") or ""
             self._trackerkeywords = config.get("trackerkeywords") or ""
             self._errorkeywords = config.get("errorkeywords") or ""
@@ -114,6 +116,7 @@ class TorrentRemover(_PluginBase):
                     "time": self._time,
                     "upspeed": self._upspeed,
                     "labels": self._labels,
+                    "labels_ex": self._labels_ex,
                     "pathkeywords": self._pathkeywords,
                     "trackerkeywords": self._trackerkeywords,
                     "errorkeywords": self._errorkeywords,
@@ -360,6 +363,22 @@ class TorrentRemover(_PluginBase):
                                     {
                                         'component': 'VTextField',
                                         'props': {
+                                            'model': 'labels_ex',
+                                            'label': '排除标签',
+                                            'placeholder': '用,分隔多个标签'
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                'component': 'VCol',
+                                'props': {
+                                    'cols': 6
+                                },
+                                'content': [
+                                    {
+                                        'component': 'VTextField',
+                                        'props': {
                                             'model': 'pathkeywords',
                                             'label': '保存路径关键词',
                                             'placeholder': '支持正式表达式'
@@ -563,6 +582,7 @@ class TorrentRemover(_PluginBase):
             "time": "",
             "upspeed": "",
             "labels": "",
+            "labels_ex": "",
             "pathkeywords": "",
             "trackerkeywords": "",
             "errorkeywords": "",
@@ -702,7 +722,8 @@ class TorrentRemover(_PluginBase):
             "id": torrent.hash,
             "name": torrent.name,
             "site": StringUtils.get_url_sld(torrent.tracker),
-            "size": torrent.size
+            "size": torrent.size,
+            "tags": torrent.tags
         }
 
     def __get_tr_torrent(self, torrent: Any) -> Optional[dict]:
@@ -751,7 +772,8 @@ class TorrentRemover(_PluginBase):
             "id": torrent.hashString,
             "name": torrent.name,
             "site": torrent.trackers[0].get("sitename") if torrent.trackers else "",
-            "size": torrent.total_size
+            "size": torrent.total_size,
+            "tags": []
         }
 
     def get_remove_torrents(self, downloader: str):
@@ -768,6 +790,11 @@ class TorrentRemover(_PluginBase):
             tags = []
         if self._mponly:
             tags.append(settings.TORRENT_TAG)
+
+        if self._labels_ex:
+            ex_tags = self._labels_ex.split(",")
+        else:
+            ex_tags = []
         # 查询种子
         torrents, error_flag = downloader_obj.get_torrents(tags=tags or None)
         if error_flag:
@@ -779,6 +806,14 @@ class TorrentRemover(_PluginBase):
             else:
                 item = self.__get_tr_torrent(torrent)
             if not item:
+                continue
+            item_tags = item.get("tags")
+            is_exclude = False
+            for ex in ex_tags:
+                if ex in item_tags:
+                    is_exclude = True
+                    break
+            if is_exclude:
                 continue
             remove_torrents.append(item)
         # 处理辅种
