@@ -19,7 +19,7 @@ from app.utils.string import StringUtils
 lock = threading.Lock()
 
 
-class TorrentRemover(_PluginBase):
+class TorrentRemoverExclude(_PluginBase):
     # 插件名称
     plugin_name = "自动删种(排除版)"
     # 插件描述
@@ -27,7 +27,7 @@ class TorrentRemover(_PluginBase):
     # 插件图标
     plugin_icon = "delete.jpg"
     # 插件版本
-    plugin_version = "1.0.1"
+    plugin_version = "1.0.2"
     # 插件作者
     plugin_author = "carendule"
     # 作者主页
