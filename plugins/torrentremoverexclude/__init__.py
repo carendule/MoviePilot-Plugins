@@ -27,7 +27,7 @@ class TorrentRemover(_PluginBase):
     # 插件图标
     plugin_icon = "delete.jpg"
     # 插件版本
-    plugin_version = "1.0.0"
+    plugin_version = "1.0.1"
     # 插件作者
     plugin_author = "carendule"
     # 作者主页
@@ -152,8 +152,8 @@ class TorrentRemover(_PluginBase):
         """
         if self.get_state():
             return [{
-                "id": "TorrentRemover",
-                "name": "自动删种服务",
+                "id": "TorrentRemoverExclude",
+                "name": "自动删种服务(排除版)",
                 "trigger": CronTrigger.from_crontab(self._cron),
                 "func": self.delete_torrents,
                 "kwargs": {}

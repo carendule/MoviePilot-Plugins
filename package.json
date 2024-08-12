@@ -3,7 +3,7 @@
         "name": "自动删种(排除版)",
         "description": "自动删除下载器中的下载任务。可联动H&R助手",
         "labels": "做种",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "icon": "delete.jpg",
         "author": "carendule",
         "level": 2
